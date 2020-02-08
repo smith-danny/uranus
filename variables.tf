@@ -29,6 +29,5 @@ variable "tags" {
   default     = {
     KubernetesCluster = "${var.cluster_name}"
   }
-
   description = "Map of tags to be applied to all resources"
 }
