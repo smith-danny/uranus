@@ -26,6 +26,9 @@ variable "role_arn" {
 
 variable "tags" {
   type        = "map"
-  default     = {}
+  default     = {
+    KubernetesCluster = "${var.cluster_name}"
+  }
+
   description = "Map of tags to be applied to all resources"
 }
