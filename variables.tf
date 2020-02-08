@@ -16,7 +16,7 @@ variable "availability_zones" {
 variable "cluster_name" {
   type        = "string"
   default     = "k8s"
-  description = "Kubernetes cluster name"
+  description = "Kubernetes Cluster Name"
 }
 
 variable "role_arn" {
