@@ -3,6 +3,6 @@ terraform {
   backend "s3" {
     bucket = "uranus-terraform-backend"
     key    = "terraform.tfstate"
-    region = "aws_region"
+    # region = "aws_region"
   }
 }
