@@ -4,6 +4,8 @@
 
 locals {
   config_map_aws_auth = <<CONFIGMAPAWSAUTH
+
+
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -11,13 +13,11 @@ metadata:
   namespace: kube-system
 data:
   mapRoles: |
-    - rolearn: ${aws_iam_role.node.arn}
+    - rolearn: ${aws_iam_role.demo-node.arn}
       username: system:node:{{EC2PrivateDNSName}}
       groups:
         - system:bootstrappers
         - system:nodes
-  mapAccounts: |
-    - "${var.account_id}"
 CONFIGMAPAWSAUTH
 
   kubeconfig = <<KUBECONFIG
@@ -26,19 +26,19 @@ CONFIGMAPAWSAUTH
 apiVersion: v1
 clusters:
 - cluster:
-    server: ${aws_eks_cluster.cluster.endpoint}
-    certificate-authority-data: ${aws_eks_cluster.cluster.certificate_authority.0.data}
-  name: ${var.cluster_name}
+    server: ${aws_eks_cluster.demo.endpoint}
+    certificate-authority-data: ${aws_eks_cluster.demo.certificate_authority.0.data}
+  name: kubernetes
 contexts:
 - context:
-    cluster: ${var.cluster_name}
-    user: aws-${var.cluster_name}
-  name: aws-${var.cluster_name}
-current-context: aws-${var.cluster_name}
+    cluster: kubernetes
+    user: aws
+  name: aws
+current-context: aws
 kind: Config
 preferences: {}
 users:
-- name: aws-${var.cluster_name}
+- name: aws
   user:
     exec:
       apiVersion: client.authentication.k8s.io/v1alpha1
@@ -46,16 +46,14 @@ users:
       args:
         - "token"
         - "-i"
-        - "${var.cluster_name}"
-        - "-r"
-        - "${var.role_arn}"
+        - "${var.cluster-name}"
 KUBECONFIG
 }
 
 output "config_map_aws_auth" {
-  value = "${local.config_map_aws_auth}"
+  value = local.config_map_aws_auth
 }
 
 output "kubeconfig" {
-  value = "${local.kubeconfig}"
+  value = local.kubeconfig
 }

@@ -5,9 +5,8 @@
 #  * EKS Cluster
 #
 
-# Create an IAM role for EKS to manage other AWS resources on our behalf
-resource "aws_iam_role" "eksServiceRole" {
-  name = "terraform-eks-${var.cluster_name}-eksServiceRole"
+resource "aws_iam_role" "demo-cluster" {
+  name = "terraform-eks-demo-cluster"
 
   assume_role_policy = <<POLICY
 {
@@ -25,23 +24,20 @@ resource "aws_iam_role" "eksServiceRole" {
 POLICY
 }
 
-# Attach Amazon's managed AmazonEKSClusterPolicy to our EKS service role
-resource "aws_iam_role_policy_attachment" "AmazonEKSClusterPolicy" {
+resource "aws_iam_role_policy_attachment" "demo-cluster-AmazonEKSClusterPolicy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
-  role       = "${aws_iam_role.eksServiceRole.name}"
+  role       = aws_iam_role.demo-cluster.name
 }
 
-# Attach Amazon's managed AmazonEKSServicePolicy to our EKS service role
-resource "aws_iam_role_policy_attachment" "AmazonEKSServicePolicy" {
+resource "aws_iam_role_policy_attachment" "demo-cluster-AmazonEKSServicePolicy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSServicePolicy"
-  role       = "${aws_iam_role.eksServiceRole.name}"
+  role       = aws_iam_role.demo-cluster.name
 }
 
-# Create a security group for cluster internal communication
-resource "aws_security_group" "cluster" {
-  name        = "terraform-eks-${var.cluster_name}-cluster"
+resource "aws_security_group" "demo-cluster" {
+  name        = "terraform-eks-demo-cluster"
   description = "Cluster communication with worker nodes"
-  vpc_id      = "${aws_vpc.cluster.id}"
+  vpc_id      = aws_vpc.demo.id
 
   egress {
     from_port   = 0
@@ -50,39 +46,32 @@ resource "aws_security_group" "cluster" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = "${merge(
-    local.common_tags,
-    map(
-      "Name", "terraform-eks-${var.cluster_name}"
-    )
-  )}"
+  tags = {
+    Name = "terraform-eks-demo"
+  }
 }
 
-# Allow pods to communicate with the cluster API server
-resource "aws_security_group_rule" "cluster-ingress-node-https" {
-  description              = "Allow pods to communicate with the cluster API Server"
-  from_port                = 443
-  protocol                 = "tcp"
-  security_group_id        = "${aws_security_group.cluster.id}"
-  source_security_group_id = "${aws_security_group.node.id}"
-  to_port                  = 443
-  type                     = "ingress"
+resource "aws_security_group_rule" "demo-cluster-ingress-workstation-https" {
+  cidr_blocks       = [local.workstation-external-cidr]
+  description       = "Allow workstation to communicate with the cluster API Server"
+  from_port         = 443
+  protocol          = "tcp"
+  security_group_id = aws_security_group.demo-cluster.id
+  to_port           = 443
+  type              = "ingress"
 }
 
-# Create an EKS cluster
-resource "aws_eks_cluster" "cluster" {
-  name     = "${var.cluster_name}"
-  role_arn = "${aws_iam_role.eksServiceRole.arn}"
+resource "aws_eks_cluster" "demo" {
+  name     = var.cluster-name
+  role_arn = aws_iam_role.demo-cluster.arn
 
   vpc_config {
-    security_group_ids = ["${aws_security_group.cluster.id}"]
-    subnet_ids         = ["${aws_subnet.cluster.*.id}"]
+    security_group_ids = [aws_security_group.demo-cluster.id]
+    subnet_ids         = aws_subnet.demo[*].id
   }
 
-  # Ensure the policies are attached to our EKS service role before creating
-  # the EKS cluster
   depends_on = [
-    "aws_iam_role_policy_attachment.AmazonEKSClusterPolicy",
-    "aws_iam_role_policy_attachment.AmazonEKSServicePolicy",
+    aws_iam_role_policy_attachment.demo-cluster-AmazonEKSClusterPolicy,
+    aws_iam_role_policy_attachment.demo-cluster-AmazonEKSServicePolicy,
   ]
 }
