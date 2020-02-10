@@ -47,7 +47,7 @@ resource "aws_security_group" "kubernetes-cluster" {
   }
 
   tags = {
-    Name = "terraform-eks-kubernetes"
+    Name = "Kubernetes Public Ingress"
   }
 }
 
