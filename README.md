@@ -49,6 +49,12 @@ Kubernetes uses `kubectl` to interact with the cluster and it is essential in Mi
     sudo mv ./kubectl /usr/local/bin/kubectl
     ```
 
+* Create kubectl configuration for EKS
+
+    ```
+    terraform output kubeconfig > ~/.kube/config
+    ```
+
 * Generate IAM Role authentication ConfigMap
 
     ```
@@ -63,3 +69,83 @@ Kubernetes uses `kubectl` to interact with the cluster and it is essential in Mi
     kubectl get node
     ```
 
+## Deploy helloworld
+
+* Deploy App
+
+    ```
+    cat <<EOF | kubectl apply -f -
+    ---
+    apiVersion: extensions/v1beta1
+    kind: Deployment
+    metadata:
+    name: helloworld-deployment
+    labels:
+        app: helloworld
+    spec:
+    replicas: 1
+    template:
+        metadata:
+        labels:
+            app: helloworld
+        spec:
+        containers:
+        - name: helloworld
+            image: dockercloud/hello-world
+            ports:
+            - containerPort: 80
+    ---
+    apiVersion: v1
+    kind: Service
+    metadata:
+    name: "service-helloworld"
+    spec:
+    selector:
+        app: helloworld
+    type: LoadBalancer
+    ports:
+    - protocol: TCP
+        port: 80
+        targetPort: 80
+    EOF
+    ```
+
+* Get App info
+
+    ```
+    kubectl get svc service-helloworld -o yaml
+    ```
+
+* Browse to the `hostname`
+
+## Deploy NGINX app and test BASH access
+
+* Deploy App
+
+    ```
+    cat <<EOF | kubectl apply -f -
+    ---
+    apiVersion: v1
+    kind: Pod
+    metadata:
+    name: shell-demo
+    spec:
+    volumes:
+    - name: shared-data
+        emptyDir: {}
+    containers:
+    - name: nginx
+        image: nginx
+        volumeMounts:
+        - name: shared-data
+        mountPath: /usr/share/nginx/html
+    hostNetwork: true
+    dnsPolicy: Default
+    EOF
+    ```
+
+* Bash into App
+
+    ```
+    kubectl exec -it shell-demo -- /bin/bash
+    ```
