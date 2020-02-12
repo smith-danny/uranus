@@ -39,7 +39,7 @@ We are using Terraform with an AWS provider to install and configure EKS in your
 
 ## Install kubectl
 
-Kubernetes uses `kubectl` to interact with the cluster and its essential in Micoservices deployments and managing the cluster itself. 
+Kubernetes uses `kubectl` to interact with the cluster and it is essential in Micoservices deployments and managing the cluster itself. 
 
 * Install kubectl
 
