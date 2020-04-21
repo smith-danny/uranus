@@ -21,6 +21,7 @@ resource "aws_subnet" "kubernetes" {
   availability_zone = data.aws_availability_zones.available.names[count.index]
   cidr_block        = "12.0.${count.index}.0/24"
   vpc_id            = aws_vpc.kubernetes.id
+  map_public_ip_on_launch = "true"
 
   tags = map(
     "Name", "Kubernetes Subnet",
