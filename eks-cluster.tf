@@ -64,6 +64,7 @@ resource "aws_security_group_rule" "kubernetes-cluster-ingress-workstation-https
 resource "aws_eks_cluster" "kubernetes" {
   name     = var.cluster-name
   role_arn = aws_iam_role.kubernetes-cluster.arn
+  version  = var.kubernetes_version
 
   vpc_config {
     security_group_ids = [aws_security_group.kubernetes-cluster.id]
