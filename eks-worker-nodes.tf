@@ -45,9 +45,9 @@ resource "aws_eks_node_group" "kubernetes" {
   subnet_ids      = aws_subnet.kubernetes[*].id
 
   scaling_config {
-    desired_size = 1
-    max_size     = 1
-    min_size     = 1
+    desired_size = 4
+    max_size     = 4
+    min_size     = 4
   }
 
   depends_on = [
